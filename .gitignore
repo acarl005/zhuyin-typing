@@ -1,0 +1,4 @@
+node_modules
+text
+cache/*.json
+*.swp
