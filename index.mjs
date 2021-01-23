@@ -8,6 +8,7 @@ import * as chalk from "chalk"
 import eaw from "eastasianwidth"
 import blessed from "blessed"
 import * as cache from "node-file-cache"
+import _ from "lodash"
 
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
 
@@ -108,6 +109,7 @@ function parseZhuyinResult(html) {
   const parsed = parser.parse(html)
 
   const structured = []
+  let totalTypableChars = 0
   for (const line of parsed.childNodes) {
     for (const child of line.childNodes) {
       const [converted, original] = child.childNodes
@@ -119,6 +121,7 @@ function parseZhuyinResult(html) {
       }
       if (converted.childNodes.length) {
         const zhuyinText = converted.childNodes[0].rawText
+        totalTypableChars += zhuyinText.length
         // the eastasianwidth library calculates the wrong width for the tone marks ˇˋˊ˙
         // so replace those with a dummy character to get correct width
         const patchedZhuyinText = zhuyinText
@@ -140,7 +143,13 @@ function parseZhuyinResult(html) {
       }
     })
   }
-  return structured
+  return [structured, totalTypableChars]
+}
+
+
+function checkWinCondition(textInfo, keyStack) {
+  const allTypableChars = textInfo.flatMap(item => item.zhuyin?.text?.split("") || [])
+  return _.isEqual(allTypableChars, keyStack)
 }
 
 
@@ -161,7 +170,7 @@ async function main(paths) {
     html = await convertHanzi(hanzi)
     fileCache.set(hexHash, html)
   }
-  const structured = parseZhuyinResult(html)
+  const [structured, totalTypableChars] = parseZhuyinResult(html)
 
   // these are all the keys that the player pressed
   const keyStack = []
@@ -198,6 +207,22 @@ async function main(paths) {
     }
 
     box.setContent(stringifyContent(structured, keyStack))
+    if (keyStack.length === totalTypableChars && checkWinCondition(structured, keyStack)) {
+      blessed.box({
+        parent: screen,
+        top: "center",
+        left: "center",
+        height: "50%",
+        width: "50%",
+        content: "You win!!! ".repeat(200),
+        align: "center",
+        valign: "middle",
+        border: {
+          type: "line"
+        }
+      })
+      screen.key(["enter"], () => process.exit(0))
+    }
     screen.render()
   })
 }
