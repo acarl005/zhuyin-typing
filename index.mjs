@@ -25,6 +25,7 @@ function stringifyContent(textInfo, keyStack) {
   let hanziRow = []
   let zhuyinRow = []
   let keyStackIndex = 0
+  let cursorRow = 0
   while (textIndex < textInfo.length) {
     const { hanzi, zhuyin } = textInfo[textIndex]
     const spaceNeeded = Math.max(hanzi.width, zhuyin?.width || 0)
@@ -47,6 +48,7 @@ function stringifyContent(textInfo, keyStack) {
           zhuyinRow.push(zh)
         } else if (keyStackIndex === keyStack.length) {
           zhuyinRow.push("{underline}" + zh + "{/}")
+          cursorRow = rows.length + 1
           keyStackIndex++
         } else {
           zhuyinRow.push(`{${zh !== keyStack[keyStackIndex++] ? "red-bg" : "green-fg"}}${zh}{/}`)
@@ -58,7 +60,7 @@ function stringifyContent(textInfo, keyStack) {
     }
     textIndex++
   }
-  return rows.join("\n")
+  return { content: rows.join("\n"), cursorRow }
 }
 
 
@@ -181,11 +183,12 @@ async function main(paths) {
   })
   screen.key(["C-c"], () => process.exit(0))
 
+  const { content } = stringifyContent(structured, keyStack)
   const box = blessed.box({
     parent: screen,
     // give is the code and highlight the first character green!
     //content: chalk.bgGreen(text[0]) + text.slice(1),
-    content: stringifyContent(structured, keyStack),
+    content,
     height: "100%",
     scrollable: true,
     tags: true,
@@ -206,7 +209,10 @@ async function main(paths) {
       keyStack.push(ch in ZHUYIN_MAP ? ZHUYIN_MAP[ch] : ch)
     }
 
-    box.setContent(stringifyContent(structured, keyStack))
+    const { content, cursorRow } = stringifyContent(structured, keyStack)
+    box.setContent(content)
+    box.scrollTo(cursorRow + Math.floor((box.height - 2) / 2))
+
     if (keyStack.length === totalTypableChars && checkWinCondition(structured, keyStack)) {
       blessed.box({
         parent: screen,
