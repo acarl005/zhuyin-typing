@@ -1,6 +1,8 @@
+#!/usr/bin/env node
 import * as fs from "fs"
 import * as path from "path"
 import * as crypto from "crypto"
+import { fileURLToPath } from "url"
 
 import fetch from "node-fetch"
 import parser from "node-html-parser"
@@ -13,8 +15,12 @@ import _ from "lodash"
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
 
 
+const __filename = fileURLToPath(import.meta.url)
 const ONE_WEEK_IN_SECONDS = 60 * 60 * 24 * 7
-const fileCache = cache.create({ file: "./cache/cache.json", life: ONE_WEEK_IN_SECONDS })
+const fileCache = cache.create({
+  file: path.join(__filename, "..", "cache", "cache.json"),
+  life: ONE_WEEK_IN_SECONDS
+})
 
 
 function stringifyContent(textInfo, keyStack) {
