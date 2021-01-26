@@ -4,7 +4,9 @@
   "description": "Improve typing Chinese characters with Zhuyin",
   "bin": "index.mjs",
   "type": "module",
-  "engines": { "node": ">=14" },
+  "engines": {
+    "node": ">=14.15"
+  },
   "engineStrict": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,10 +16,10 @@
   "dependencies": {
     "blessed": "^0.1.81",
     "chalk": "^4.1.0",
-    "eastasianwidth": "^0.2.0",
     "lodash": "4.17.20",
     "node-fetch": "^2.6.1",
     "node-file-cache": "1.0.2",
-    "node-html-parser": "^2.0.2"
+    "node-html-parser": "^2.0.2",
+    "string-width": "^4.2.0"
   }
 }

@@ -1,24 +1,27 @@
 #!/usr/bin/env node
-import * as fs from "fs"
-import * as path from "path"
-import * as crypto from "crypto"
+import fs from "fs"
+import path from "path"
+import crypto from "crypto"
 import { fileURLToPath } from "url"
 
 import fetch from "node-fetch"
 import parser from "node-html-parser"
-import * as chalk from "chalk"
-import eaw from "eastasianwidth"
+import chalk from "chalk"
+import stringWidth from "string-width"
 import blessed from "blessed"
-import * as cache from "node-file-cache"
+import cache from "node-file-cache"
 import _ from "lodash"
 
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
 
 
+// polyfill some old commonJS stuff
 const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.join(__filename, "..")
+
 const ONE_WEEK_IN_SECONDS = 60 * 60 * 24 * 7
 const fileCache = cache.create({
-  file: path.join(__filename, "..", "cache", "cache.json"),
+  file: path.join(__dirname, "cache", "cache.json"),
   life: ONE_WEEK_IN_SECONDS
 })
 
@@ -124,22 +127,15 @@ function parseZhuyinResult(html) {
       const item = {
         hanzi: {
           text: original.rawText,
-          width: eaw.length(original.rawText)
+          width: stringWidth(original.rawText)
         }
       }
       if (converted.childNodes.length) {
         const zhuyinText = converted.childNodes[0].rawText
         totalTypableChars += zhuyinText.length
-        // the eastasianwidth library calculates the wrong width for the tone marks ˇˋˊ˙
-        // so replace those with a dummy character to get correct width
-        const patchedZhuyinText = zhuyinText
-          .replace("\u02c7", "1")
-          .replace("\u02cb", "1")
-          .replace("\u02ca", "1")
-          .replace("\u02d9", "1")
         item.zhuyin = {
           text: zhuyinText,
-          width: eaw.length(patchedZhuyinText)
+          width: stringWidth(zhuyinText)
         }
       }
       structured.push(item)
@@ -162,6 +158,9 @@ function checkWinCondition(textInfo, keyStack) {
 
 
 async function main(paths) {
+  if (paths.length === 0) {
+    paths = [path.join(__dirname, "examples")]
+  }
   // arguments are filepaths. we'll expand any dirs, then pick 1 file randomly
   const filePaths = expandPaths(paths, [])
   const hanzi = fs.readFileSync(pickRandom(filePaths), "utf-8")
@@ -174,11 +173,15 @@ async function main(paths) {
   // if not in cache, download and set it in the cache
   let html = fileCache.get(hexHash)
   if (html === null) {
-    console.error("Downloading zhuyin...")
+    console.error("在下載注音...")
     html = await convertHanzi(hanzi)
     fileCache.set(hexHash, html)
   }
   const [structured, totalTypableChars] = parseZhuyinResult(html)
+  if (totalTypableChars === 0) {
+    console.error("文件沒有漢字")
+    process.exit(1)
+  }
 
   // these are all the keys that the player pressed
   const keyStack = []
@@ -226,7 +229,7 @@ async function main(paths) {
         left: "center",
         height: "50%",
         width: "50%",
-        content: "You win!!! ".repeat(200),
+        content: "你贏了！".repeat(200),
         align: "center",
         valign: "middle",
         border: {
