@@ -40,8 +40,8 @@ function stringifyContent(textInfo, keyStack) {
     }
     if (spaceNeeded > rowSpace || hanzi.text === "\n") {
       rowSpace = process.stdout.columns - 2
-      rows.push("{cyan-fg}" + hanziRow.join("") + "{/}")
-      rows.push(zhuyinRow.join(""))
+      rows.push("{bold}" + hanziRow.join("") + "{/}")
+      rows.push(zhuyinRow.join("") + "{/}")
       hanziRow = []
       zhuyinRow = []
       continue
@@ -51,7 +51,7 @@ function stringifyContent(textInfo, keyStack) {
     if (zhuyin) {
       for (const zh of zhuyin.text) {
         if (keyStackIndex > keyStack.length) {
-          zhuyinRow.push(zh)
+          zhuyinRow.push("{#888-fg}" + zh)
         } else if (keyStackIndex === keyStack.length) {
           zhuyinRow.push("{underline}" + zh + "{/}")
           cursorRow = rows.length + 1
