@@ -15,7 +15,6 @@
   "license": "MIT",
   "dependencies": {
     "blessed": "^0.1.81",
-    "lodash": "4.17.20",
     "node-fetch": "^2.6.1",
     "node-html-parser": "^2.0.2",
     "protobufjs": "^6.10.2",

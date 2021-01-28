@@ -6,7 +6,6 @@ import { fileURLToPath } from "url"
 import { promisify } from "util"
 
 import blessed from "blessed"
-import _ from "lodash"
 import protobuf from "protobufjs"
 
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
@@ -97,7 +96,20 @@ function pickRandom(items) {
 
 function checkWinCondition(textInfo, keyStack) {
   const allTypableChars = textInfo.flatMap(item => item.zhuyin?.text?.split("") || [])
-  return _.isEqual(allTypableChars, keyStack)
+  return arrayShallowEquals(allTypableChars, keyStack)
+}
+
+
+function arrayShallowEquals(arr1, arr2) {
+  if (arr1.length != arr2.length) {
+    return false
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false
+    }
+  }
+  return true
 }
 
 
