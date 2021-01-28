@@ -3,11 +3,11 @@ import fs from "fs"
 import path from "path"
 import crypto from "crypto"
 import { fileURLToPath } from "url"
+import { promisify } from "util"
 
-import chalk from "chalk"
 import blessed from "blessed"
 import _ from "lodash"
-import msgpack from "msgpack"
+import protobuf from "protobufjs"
 
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
 import FileCache from "./file-cache.mjs"
@@ -114,14 +114,16 @@ async function main(paths) {
   hash.update(hanzi)
   const hexHash = hash.digest("hex")
 
-  // if not in cache, download and set it in the cache
+  const root = await promisify(protobuf.load)("./document.proto")
+  const Document = root.lookupType("Document")
+  // if not in cache, download and set it in the cache. data is serialized with protobuf
   let textData = fileCache.get(hexHash)
   if (textData === null) {
     console.error("在下載注音...")
     textData = await convertHanzi(hanzi)
-    fileCache.set(hexHash, msgpack.pack(textData))
+    fileCache.set(hexHash, Document.encode({ characters: textData }).finish())
   } else {
-    textData = msgpack.unpack(textData)
+    textData = Document.decode(textData).characters
   }
   const totalTypableChars = computeTypableChars(textData)
   if (totalTypableChars === 0) {
@@ -141,8 +143,6 @@ async function main(paths) {
   const { content } = stringifyContent(textData, keyStack)
   const box = blessed.box({
     parent: screen,
-    // give is the code and highlight the first character green!
-    //content: chalk.bgGreen(text[0]) + text.slice(1),
     content,
     height: "100%",
     scrollable: true,

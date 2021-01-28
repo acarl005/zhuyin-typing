@@ -15,11 +15,10 @@
   "license": "MIT",
   "dependencies": {
     "blessed": "^0.1.81",
-    "chalk": "^4.1.0",
     "lodash": "4.17.20",
-    "msgpack": "^1.0.3",
     "node-fetch": "^2.6.1",
     "node-html-parser": "^2.0.2",
+    "protobufjs": "^6.10.2",
     "string-width": "^4.2.0"
   }
 }
