@@ -4,26 +4,24 @@ import path from "path"
 import crypto from "crypto"
 import { fileURLToPath } from "url"
 
-import fetch from "node-fetch"
-import parser from "node-html-parser"
 import chalk from "chalk"
-import stringWidth from "string-width"
 import blessed from "blessed"
-import cache from "node-file-cache"
 import _ from "lodash"
+import msgpack from "msgpack"
 
 import ZHUYIN_MAP from "./zhuyin-map.mjs"
+import FileCache from "./file-cache.mjs"
+import convertHanzi from "./api.mjs"
 
 
 // polyfill some old commonJS stuff
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.join(__filename, "..")
 
+const packageData = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json")))
 const ONE_WEEK_IN_SECONDS = 60 * 60 * 24 * 7
-const fileCache = cache.create({
-  file: path.join(__dirname, "cache", "cache.json"),
-  life: ONE_WEEK_IN_SECONDS
-})
+const cacheDir = path.join(__dirname, "cache", packageData.version)
+const fileCache = new FileCache(cacheDir)
 
 
 function stringifyContent(textInfo, keyStack) {
@@ -73,27 +71,8 @@ function stringifyContent(textInfo, keyStack) {
 }
 
 
-async function convertHanzi(hanzi) {
-  const resp = await fetch("https://www.ezlang.net/cmn/tool_data.php", {
-    "credentials": "omit",
-    "headers": {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:83.0) Gecko/20100101 Firefox/83.0",
-      "Accept": "*/*",
-      "Accept-Language": "en-US,en;q=0.5",
-      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      "X-Requested-With": "XMLHttpRequest",
-      "Pragma": "no-cache",
-      "Cache-Control": "no-cache"
-    },
-    "referrer": "https://www.ezlang.net/en/tool/bopomofo",
-    "body": `txt=${encodeURIComponent(hanzi)}&sn=bopomofo`,
-    "method": "POST",
-    "mode": "cors"
-  });
-  const json = await resp.json()
-  // this endpoint actually returns HTML
-  const html = json[1]
-  return html
+function computeTypableChars(textData) {
+  return textData.reduce((total, char) => total + (char.zhuyin?.width || 0), 0)
 }
 
 
@@ -113,41 +92,6 @@ function expandPaths(paths, results) {
 
 function pickRandom(items) {
   return items[Math.floor(Math.random() * items.length)];
-}
-
-
-function parseZhuyinResult(html) {
-  const parsed = parser.parse(html)
-
-  const structured = []
-  let totalTypableChars = 0
-  for (const line of parsed.childNodes) {
-    for (const child of line.childNodes) {
-      const [converted, original] = child.childNodes
-      const item = {
-        hanzi: {
-          text: original.rawText,
-          width: stringWidth(original.rawText)
-        }
-      }
-      if (converted.childNodes.length) {
-        const zhuyinText = converted.childNodes[0].rawText
-        totalTypableChars += zhuyinText.length
-        item.zhuyin = {
-          text: zhuyinText,
-          width: stringWidth(zhuyinText)
-        }
-      }
-      structured.push(item)
-    }
-    structured.push({
-      hanzi: {
-        text: "\n",
-        width: 0
-      }
-    })
-  }
-  return [structured, totalTypableChars]
 }
 
 
@@ -171,13 +115,15 @@ async function main(paths) {
   const hexHash = hash.digest("hex")
 
   // if not in cache, download and set it in the cache
-  let html = fileCache.get(hexHash)
-  if (html === null) {
+  let textData = fileCache.get(hexHash)
+  if (textData === null) {
     console.error("在下載注音...")
-    html = await convertHanzi(hanzi)
-    fileCache.set(hexHash, html)
+    textData = await convertHanzi(hanzi)
+    fileCache.set(hexHash, msgpack.pack(textData))
+  } else {
+    textData = msgpack.unpack(textData)
   }
-  const [structured, totalTypableChars] = parseZhuyinResult(html)
+  const totalTypableChars = computeTypableChars(textData)
   if (totalTypableChars === 0) {
     console.error("文件沒有漢字")
     process.exit(1)
@@ -192,7 +138,7 @@ async function main(paths) {
   })
   screen.key(["C-c"], () => process.exit(0))
 
-  const { content } = stringifyContent(structured, keyStack)
+  const { content } = stringifyContent(textData, keyStack)
   const box = blessed.box({
     parent: screen,
     // give is the code and highlight the first character green!
@@ -218,11 +164,11 @@ async function main(paths) {
       keyStack.push(ch in ZHUYIN_MAP ? ZHUYIN_MAP[ch] : ch)
     }
 
-    const { content, cursorRow } = stringifyContent(structured, keyStack)
+    const { content, cursorRow } = stringifyContent(textData, keyStack)
     box.setContent(content)
     box.scrollTo(cursorRow + Math.floor((box.height - 2) / 2))
 
-    if (keyStack.length === totalTypableChars && checkWinCondition(structured, keyStack)) {
+    if (keyStack.length === totalTypableChars && checkWinCondition(textData, keyStack)) {
       blessed.box({
         parent: screen,
         top: "center",

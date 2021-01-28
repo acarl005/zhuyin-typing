@@ -1,6 +1,6 @@
 {
   "name": "zhuyin-typing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Improve typing Chinese characters with Zhuyin",
   "bin": "index.mjs",
   "type": "module",
@@ -17,8 +17,8 @@
     "blessed": "^0.1.81",
     "chalk": "^4.1.0",
     "lodash": "4.17.20",
+    "msgpack": "^1.0.3",
     "node-fetch": "^2.6.1",
-    "node-file-cache": "1.0.2",
     "node-html-parser": "^2.0.2",
     "string-width": "^4.2.0"
   }
