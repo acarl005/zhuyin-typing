@@ -71,7 +71,7 @@ function stringifyContent(textInfo, keyStack) {
 
 
 function computeTypableChars(textData) {
-  return textData.reduce((total, char) => total + (char.zhuyin?.width || 0), 0)
+  return textData.reduce((total, char) => total + (char.zhuyin?.text.length || 0), 0)
 }
 
 
@@ -165,6 +165,7 @@ async function main(paths) {
   })
 
   screen.render()
+  const startTime = Date.now()
   screen.on("keypress", (ch, key) => {
     // on mac, pressing enter triggers TWO keypresses, one called 'enter' and one called 'return'.
     if (key.name === "return" || key.ctrl || key.name === "enter") {
@@ -181,13 +182,16 @@ async function main(paths) {
     box.scrollTo(cursorRow + Math.floor((box.height - 2) / 2))
 
     if (keyStack.length === totalTypableChars && checkWinCondition(textData, keyStack)) {
+      const endTime = Date.now()
+      const gameDurationSec = (endTime - startTime) / 1000
+      const charPerMin = totalTypableChars / gameDurationSec * 60
       blessed.box({
         parent: screen,
         top: "center",
         left: "center",
         height: "50%",
         width: "50%",
-        content: "你贏了！".repeat(200),
+        content: `你贏了！\n你${Math.round(gameDurationSec)}秒輸入${totalTypableChars}個漢字。\n每個分鐘${charPerMin.toFixed(1)}漢字。`,
         align: "center",
         valign: "middle",
         border: {
