@@ -126,7 +126,7 @@ async function main(paths) {
   hash.update(hanzi)
   const hexHash = hash.digest("hex")
 
-  const root = await promisify(protobuf.load)("./document.proto")
+  const root = await promisify(protobuf.load)("./document.pb")
   const Document = root.lookupType("Document")
   // if not in cache, download and set it in the cache. data is serialized with protobuf
   let textData = fileCache.get(hexHash)
