@@ -8,7 +8,7 @@ import { promisify } from "util"
 import blessed from "blessed"
 import protobuf from "protobufjs"
 
-import ZHUYIN_MAP from "./zhuyin-map.mjs"
+import { zhuyinMap } from "./zhuyin-map.mjs"
 import FileCache from "./file-cache.mjs"
 import convertHanzi from "./api.mjs"
 
@@ -174,7 +174,7 @@ async function main(paths) {
     if (key.name === "backspace") {
       keyStack.pop()
     } else {
-      keyStack.push(ch in ZHUYIN_MAP ? ZHUYIN_MAP[ch] : ch)
+      keyStack.push(ch in zhuyinMap ? zhuyinMap[ch] : ch)
     }
 
     const { content, cursorRow } = stringifyContent(textData, keyStack)

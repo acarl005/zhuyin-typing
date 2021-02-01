@@ -2,6 +2,8 @@ import parser from "node-html-parser"
 import stringWidth from "string-width"
 import fetch from "node-fetch"
 
+import { containsZhuyin, isToneChar } from "./zhuyin-map.mjs"
+
 
 export default async function convertHanzi(hanzi) {
   const resp = await fetch("https://www.ezlang.net/cmn/tool_data.php", {
@@ -41,7 +43,11 @@ function parseZhuyinResult(html) {
         }
       }
       if (converted.childNodes.length) {
-        const zhuyinText = converted.childNodes[0].rawText
+        let zhuyinText = converted.childNodes[0].rawText
+        // add an explicit first tone mark, which is usually omitted. we want to make the user type it
+        if (containsZhuyin(zhuyinText) && !isToneChar(zhuyinText[zhuyinText.length - 1])) {
+          zhuyinText += "ˉ"
+        }
         item.zhuyin = {
           text: zhuyinText,
           width: stringWidth(zhuyinText)
