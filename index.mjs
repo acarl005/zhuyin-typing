@@ -26,8 +26,8 @@ const fileCache = new FileCache(cacheDir)
 function stringifyContent(textInfo, keyStack) {
   let rows = []
   let textIndex = 0
-    // subtract 2 for the borders
-  let rowSpace = process.stdout.columns - 2
+    // subtract 2 for the borders and 1 for the scrollbar
+  let rowSpace = process.stdout.columns - 3
   let hanziRow = []
   let zhuyinRow = []
   let keyStackIndex = 0
@@ -39,7 +39,7 @@ function stringifyContent(textInfo, keyStack) {
       textIndex++
     }
     if (spaceNeeded > rowSpace || hanzi.text === "\n") {
-      rowSpace = process.stdout.columns - 2
+      rowSpace = process.stdout.columns - 3
       rows.push("{bold}" + hanziRow.join("") + "{/}")
       rows.push(zhuyinRow.join("") + "{/}")
       hanziRow = []
@@ -150,7 +150,7 @@ async function main(paths) {
   const screen = blessed.screen({
     fullUnicode: true
   })
-  screen.key(["C-c"], () => process.exit(0))
+  screen.key(["C-c", "escape"], () => process.exit(0))
 
   const { content } = stringifyContent(textData, keyStack)
   const box = blessed.box({
@@ -161,14 +161,17 @@ async function main(paths) {
     tags: true,
     border: {
       type: "line"
-    }
+    },
+      scrollbar: {
+        bg: "gray",
+      }
   })
 
   screen.render()
   const startTime = Date.now()
+  const keysToIgnore = new Set(["return", "enter", "left", "right", "down", "up"])
   screen.on("keypress", (ch, key) => {
-    // on mac, pressing enter triggers TWO keypresses, one called 'enter' and one called 'return'.
-    if (key.name === "return" || key.ctrl || key.name === "enter") {
+    if (keysToIgnore.has(key.name)) {
       return
     }
     if (key.name === "backspace") {
