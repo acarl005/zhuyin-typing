@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import fs from "fs"
+import zlib from "zlib"
 import path from "path"
 import crypto from "crypto"
 import { fileURLToPath } from "url"
 import { promisify } from "util"
 
 import blessed from "blessed"
-import protobuf from "protobufjs"
 
 import { zhuyinMap } from "./zhuyin-map.mjs"
 import FileCache from "./file-cache.mjs"
@@ -114,6 +114,7 @@ function arrayShallowEquals(arr1, arr2) {
 
 
 async function main(paths) {
+  // if no paths provided, default to included examples
   if (paths.length === 0) {
     paths = [path.join(__dirname, "examples")]
   }
@@ -126,16 +127,15 @@ async function main(paths) {
   hash.update(hanzi)
   const hexHash = hash.digest("hex")
 
-  const root = await promisify(protobuf.load)("./document.pb")
-  const Document = root.lookupType("Document")
   // if not in cache, download and set it in the cache. data is serialized with protobuf
   let textData = fileCache.get(hexHash)
   if (textData === null) {
     console.error("在下載注音...")
     textData = await convertHanzi(hanzi)
-    fileCache.set(hexHash, Document.encode({ characters: textData }).finish())
+    const compressed = zlib.gzipSync(Buffer.from(JSON.stringify(textData)))
+    fileCache.set(hexHash, compressed)
   } else {
-    textData = Document.decode(textData).characters
+    textData = JSON.parse(zlib.gunzipSync(textData).toString("utf8"))
   }
   const totalTypableChars = computeTypableChars(textData)
   if (totalTypableChars === 0) {
