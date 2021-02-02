@@ -40,8 +40,14 @@ function stringifyContent(textInfo, keyStack) {
     }
     if (spaceNeeded > rowSpace || hanzi.text === "\n") {
       rowSpace = process.stdout.columns - 3
-      rows.push("{bold}" + hanziRow.join("") + "{/}")
-      rows.push(zhuyinRow.join("") + "{/}")
+      // this condition shouldn't be necessary, but there's a bug in Blessed causing newlines to
+      // be ignored if the "{/}" tag occurs before the newline, i.e. "{/}\n" gets ignored
+      if (hanziRow.length === 0) {
+        rows.push("", "")
+      } else {
+        rows.push("{bold}" + hanziRow.join("") + "{/}")
+        rows.push(zhuyinRow.join("") + "{/}")
+      }
       hanziRow = []
       zhuyinRow = []
       continue
@@ -162,9 +168,9 @@ async function main(paths) {
     border: {
       type: "line"
     },
-      scrollbar: {
-        bg: "gray",
-      }
+    scrollbar: {
+      bg: "gray",
+    }
   })
 
   screen.render()
