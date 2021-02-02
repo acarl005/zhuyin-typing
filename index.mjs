@@ -43,7 +43,7 @@ function stringifyContent(textInfo, keyStack) {
       // this condition shouldn't be necessary, but there's a bug in Blessed causing newlines to
       // be ignored if the "{/}" tag occurs before the newline, i.e. "{/}\n" gets ignored
       if (hanziRow.length === 0) {
-        rows.push("", "")
+        rows.push("")
       } else {
         rows.push("{bold}" + hanziRow.join("") + "{/}")
         rows.push(zhuyinRow.join("") + "{/}")
