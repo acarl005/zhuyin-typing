@@ -5,20 +5,20 @@ This is a little terminal-based typing speed trainer for inputting chinese chara
 
 ## Installation
 
-```js
+```sh
 npm i -g zhuyin-typing
 ```
 
 ## Usage
 
-```js
-// runs the game on a text file
+```sh
+# runs the game on a text file
 zhuyin-typing chinese-text-file.txt
 
-// picks 1 text file randomly from dir(s)
+# picks 1 text file randomly from dir(s)
 zhuyin-typing chinese-text-files-1 chinese-text-files-2
 
-// runs 1 included example file randomly (some old homework assignment of mine)
+# runs 1 included example file randomly (some old homework assignment of mine)
 zhuyin-typing
 ```
 
