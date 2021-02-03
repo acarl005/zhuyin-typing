@@ -13,6 +13,19 @@
   },
   "author": "Andy Carlson <2yinyang2@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acarl005/zhuyin-typing.git"
+  },
+  "keywords": [
+    "zhuyin",
+    "bopomofo",
+    "chinese",
+    "characters",
+    "typing",
+    "game",
+    "training"
+  ],
   "dependencies": {
     "blessed": "^0.1.81",
     "node-fetch": "^2.6.1",
