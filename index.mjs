@@ -77,7 +77,21 @@ function stringifyContent(textInfo, keyStack) {
 
 
 function computeTypableChars(textData) {
-  return textData.reduce((total, char) => total + (char.zhuyin?.text.length || 0), 0)
+  return textData.reduce((total, char) => total + (char.zhuyin?.text?.length || 0), 0)
+}
+
+
+function computeGameDuration(startTime, endTime, pauseTimes) {
+  let gameDurationSec = (endTime - startTime) / 1000
+  // need to subtract the amount of time the game was paused for
+  // the `pausedTimes` array contains timestamps when the game was paused and unpaused
+  // so, the times at even indices are all pause start times and the odd indices are end times
+  for (let i = 0; i < pauseTimes.length; i += 2) {
+    const pauseStart = pauseTimes[i]
+    const pauseEnd = pauseTimes[i + 1]
+    gameDurationSec -= (pauseEnd - pauseStart) / 1000
+  }
+  return gameDurationSec
 }
 
 
@@ -159,7 +173,7 @@ async function main(paths) {
   screen.key(["C-c", "escape"], () => process.exit(0))
 
   const { content } = stringifyContent(textData, keyStack)
-  const box = blessed.box({
+  const mainBox = blessed.box({
     parent: screen,
     content,
     height: "100%",
@@ -172,27 +186,55 @@ async function main(paths) {
       bg: "gray",
     }
   })
+  const pauseBox = blessed.box({
+    parent: screen,
+    top: "center",
+    left: "center",
+    height: "50%",
+    width: "50%",
+    content: "遊戲暫停了。按『\\』玩下去。",
+    align: "center",
+    valign: "middle",
+    border: {
+      type: "line"
+    }
+  })
+  pauseBox.hide()
 
   screen.render()
   const startTime = Date.now()
+  const pauseTimes = []
+  let paused = false
   const keysToIgnore = new Set(["return", "enter", "left", "right", "down", "up"])
   screen.on("keypress", (ch, key) => {
     if (keysToIgnore.has(key.name)) {
       return
     }
-    if (key.name === "backspace") {
-      keyStack.pop()
+    if (paused) {
+      if (ch === "\\") {
+        paused = false
+        pauseTimes.push(Date.now())
+        pauseBox.hide()
+      }
     } else {
-      keyStack.push(ch in zhuyinMap ? zhuyinMap[ch] : ch)
+      if (key.name === "backspace") {
+        keyStack.pop()
+      } else if (ch === "\\") {
+        paused = true
+        pauseTimes.push(Date.now())
+        pauseBox.show()
+      } else {
+        keyStack.push(ch in zhuyinMap ? zhuyinMap[ch] : ch)
+      }
     }
 
     const { content, cursorRow } = stringifyContent(textData, keyStack)
-    box.setContent(content)
-    box.scrollTo(cursorRow + Math.floor((box.height - 2) / 2))
+    mainBox.setContent(content)
+    mainBox.scrollTo(cursorRow + Math.floor((mainBox.height - 2) / 2))
 
     if (keyStack.length === totalTypableChars && checkWinCondition(textData, keyStack)) {
       const endTime = Date.now()
-      const gameDurationSec = (endTime - startTime) / 1000
+      const gameDurationSec = computeGameDuration(startTime, endTime, pauseTimes)
       const charPerMin = totalTypableChars / gameDurationSec * 60
       blessed.box({
         parent: screen,
