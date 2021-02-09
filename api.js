@@ -2,7 +2,7 @@ import parser from "node-html-parser"
 import stringWidth from "string-width"
 import fetch from "node-fetch"
 
-import { containsZhuyin, isToneChar } from "./zhuyin-map.mjs"
+import { containsZhuyin, isToneChar } from "./zhuyin-map.js"
 
 
 export default async function convertHanzi(hanzi) {
