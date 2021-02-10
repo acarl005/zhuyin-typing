@@ -38,7 +38,7 @@ function expandPaths(paths: Array<string>, results: Array<string>) {
 async function main(paths: Array<string>) {
   // if no paths provided, default to included examples
   if (paths.length === 0) {
-    paths = [pathJoin(__dirname, "examples")]
+    paths = [pathJoin(__dirname, "..", "examples")]
   }
   // arguments are filepaths. we'll expand any dirs, then pick 1 file randomly
   const filePaths = expandPaths(paths, [])
