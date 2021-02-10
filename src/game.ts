@@ -4,11 +4,34 @@ import { zhuyinMap } from "./zhuyin-map.js"
 import { arrayShallowEquals } from "./utils.js"
 
 
+export type TextData = {
+  text: string;
+  width: number;
+}
+
+export type CharData = {
+  hanzi: TextData;
+  zhuyin?: TextData;
+};
+
+export type Manuscript = Array<CharData>
+
 export default class Game {
+  manuscript: Manuscript
+  totalTypableChars: number
+  keyStack: Array<string>
+  startTime: number
+  pauseTimes: Array<number>
+  paused: boolean
+  screen!: Screen
+  mainBox: blessed.Box
+  pauseBox: blessed.Box
+  winBox: blessed.Box
+
   // these keys have no effect on the game, so ignore them
   static keysToIgnore = new Set(["return", "enter", "left", "right", "down", "up"])
 
-  constructor(manuscript) {
+  constructor(manuscript: Manuscript) {
     this.manuscript = manuscript
     this.totalTypableChars = Game.computeTypableChars(manuscript)
     if (this.totalTypableChars === 0) {
@@ -23,11 +46,11 @@ export default class Game {
     this.paused = false
   }
 
-  static computeTypableChars(manuscript) {
+  static computeTypableChars(manuscript: Manuscript) {
     return manuscript.reduce((total, char) => total + (char.zhuyin?.text?.length || 0), 0)
   }
 
-  static computeGameDuration(startTime, endTime, pauseTimes) {
+  static computeGameDuration(startTime: number, endTime: number, pauseTimes: Array<number>) {
     let gameDurationSec = (endTime - startTime) / 1000
     // need to subtract the amount of time the game was paused for
     // the `pausedTimes` array contains timestamps when the game was paused and unpaused
@@ -40,7 +63,7 @@ export default class Game {
     return gameDurationSec
   }
 
-  static checkWinCondition(manuscript, keyStack) {
+  static checkWinCondition(manuscript: Manuscript, keyStack: Array<string>) {
     const allTypableChars = manuscript.flatMap(item => item.zhuyin?.text?.split("") || [])
     return arrayShallowEquals(allTypableChars, keyStack)
   }
@@ -111,7 +134,7 @@ export default class Game {
     this.pauseBox.show()
   }
 
-  onKeyPress(ch, key) {
+  onKeyPress(ch: string, key) {
     if (Game.keysToIgnore.has(key.name)) {
       return
     }
@@ -147,7 +170,7 @@ export default class Game {
     const charPerMin = this.totalTypableChars / gameDurationSec * 60
     const winMessage = `
       你贏了！
-      你${Math.round(this.gameDurationSec)}秒輸入${this.totalTypableChars}個漢字。
+      你${Math.round(gameDurationSec)}秒輸入${this.totalTypableChars}個漢字。
       每個分鐘${charPerMin.toFixed(1)}漢字。
     `
     this.winBox.setContent(winMessage)

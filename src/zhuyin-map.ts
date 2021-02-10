@@ -1,4 +1,4 @@
-export const zhuyinMap = {
+export const zhuyinMap: Record<string, string> = {
   "1": "ㄅ",
   "2": "ㄉ",
   "3": "ˇ",
@@ -48,16 +48,16 @@ const zhuyinCharSet = new Set(Object.values(zhuyinMap))
 const zhuyinToneSet = new Set(["ˉ",  "ˊ",  "ˇ",  "ˋ",  "˙"])
 
 
-export function containsZhuyin(text) {
+export function containsZhuyin(text: string) {
   return Array.prototype.some.call(text, isZhuyinChar)
 }
 
 
-export function isZhuyinChar(char) {
+export function isZhuyinChar(char: string) {
   return zhuyinCharSet.has(char)
 }
 
 
-export function isToneChar(char) {
+export function isToneChar(char: string) {
   return zhuyinToneSet.has(char)
 }

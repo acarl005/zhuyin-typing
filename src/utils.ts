@@ -1,9 +1,9 @@
-export function pickRandom(items) {
+export function pickRandom(items: Array<any>) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
 
-export function arrayShallowEquals(arr1, arr2) {
+export function arrayShallowEquals(arr1: Array<any>, arr2: Array<any>) {
   if (arr1.length != arr2.length) {
     return false
   }

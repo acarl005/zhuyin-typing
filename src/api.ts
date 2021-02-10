@@ -3,9 +3,10 @@ import stringWidth from "string-width"
 import fetch from "node-fetch"
 
 import { containsZhuyin, isToneChar } from "./zhuyin-map.js"
+import { CharData, Manuscript } from "./game.js"
 
 
-export default async function convertHanzi(hanzi) {
+export default async function convertHanzi(hanzi: string) {
   const resp = await fetch("https://www.ezlang.net/cmn/tool_data.php", {
     "credentials": "omit",
     "headers": {
@@ -29,14 +30,14 @@ export default async function convertHanzi(hanzi) {
 }
 
 
-function parseZhuyinResult(html) {
+function parseZhuyinResult(html: string) {
   const parsed = parser.parse(html)
 
-  const structured = []
+  const structured: Manuscript = []
   for (const line of parsed.childNodes) {
     for (const child of line.childNodes) {
       const [converted, original] = child.childNodes
-      const item = {
+      const item: CharData = {
         hanzi: {
           text: original.rawText,
           width: stringWidth(original.rawText)
