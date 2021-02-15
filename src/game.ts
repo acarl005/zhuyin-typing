@@ -180,6 +180,7 @@ export default class Game {
     this.winBox.setContent(winMessage)
     this.winBox.show()
     this.screen.key(["enter"], () => process.exit(0))
+    this.screen.removeListener("click", this.onKeyPress)
   }
 
   render() {
@@ -200,6 +201,7 @@ export default class Game {
     let zhuyinRow = []
     let keyStackIndex = 0
     let cursorRow = 0
+    let hasError = false
     while (textIndex < manuscript.length) {
       const { hanzi, zhuyin } = manuscript[textIndex]
       // the minimum amount of space required to display the hanzi and zhuyin for this character
@@ -234,7 +236,9 @@ export default class Game {
             cursorRow = rows.length + 1
             keyStackIndex++
           } else {
-            zhuyinRow.push(`{${zh !== keyStack[keyStackIndex++] ? "red-bg" : "green-fg"}}${zh}{/}`)
+            const thisKey = keyStack[keyStackIndex++]
+            hasError = hasError || (zh !== thisKey)
+            zhuyinRow.push(`{${hasError ? "red-bg" : "green-fg"}}${zh}{/}`)
           }
         }
         zhuyinRow.push(" ".repeat(spaceNeeded - zhuyin.width))
