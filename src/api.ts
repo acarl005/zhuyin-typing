@@ -1,5 +1,6 @@
 import parser from "node-html-parser"
 import stringWidth from "string-width"
+// @ts-ignore
 import fetch from "node-fetch"
 
 import { containsZhuyin, isToneChar } from "./zhuyin-map.js"
@@ -8,8 +9,7 @@ import { CharData, Manuscript } from "./game.js"
 
 export default async function convertHanzi(hanzi: string) {
   const resp = await fetch("https://www.ezlang.net/cmn/tool_data.php", {
-    "credentials": "omit",
-    "headers": {
+    headers: {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:83.0) Gecko/20100101 Firefox/83.0",
       "Accept": "*/*",
       "Accept-Language": "en-US,en;q=0.5",
@@ -18,10 +18,11 @@ export default async function convertHanzi(hanzi: string) {
       "Pragma": "no-cache",
       "Cache-Control": "no-cache"
     },
-    "referrer": "https://www.ezlang.net/en/tool/bopomofo",
-    "body": `txt=${encodeURIComponent(hanzi)}&sn=bopomofo`,
-    "method": "POST",
-    "mode": "cors"
+    referrer: "https://www.ezlang.net/en/tool/bopomofo",
+    body: `txt=${encodeURIComponent(hanzi)}&sn=bopomofo`,
+    method: "POST",
+    credentials: "omit",
+    mode: "cors"
   });
   const json = await resp.json()
   // this endpoint actually returns HTML
@@ -31,6 +32,7 @@ export default async function convertHanzi(hanzi: string) {
 
 
 function parseZhuyinResult(html: string) {
+  // @ts-ignore
   const parsed = parser.parse(html)
 
   const structured: Manuscript = []

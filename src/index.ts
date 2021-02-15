@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = pathJoin(__filename, "..")
 
 const packageData = JSON.parse(fs.readFileSync(pathJoin(__dirname, "..", "package.json"), "utf8"))
-const cacheDir = pathJoin(__dirname, "cache", packageData.version)
+const cacheDir = pathJoin(__dirname, "..", "cache", packageData.version)
 const fileCache = new FileCache(cacheDir)
 
 

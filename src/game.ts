@@ -1,4 +1,6 @@
+// @ts-ignore
 import blessed from "blessed"
+import { Widgets } from "blessed"
 
 import { zhuyinMap } from "./zhuyin-map.js"
 import { arrayShallowEquals } from "./utils.js"
@@ -23,10 +25,10 @@ export default class Game {
   startTime: number
   pauseTimes: Array<number>
   paused: boolean
-  screen!: Screen
-  mainBox: blessed.Box
-  pauseBox: blessed.Box
-  winBox: blessed.Box
+  screen!: Widgets.Screen
+  mainBox!: Widgets.BoxElement
+  pauseBox!: Widgets.BoxElement
+  winBox!: Widgets.BoxElement
 
   // these keys have no effect on the game, so ignore them
   static keysToIgnore = new Set(["return", "enter", "left", "right", "down", "up"])
@@ -88,7 +90,9 @@ export default class Game {
         type: "line"
       },
       scrollbar: {
-        bg: "gray",
+        style: {
+          bg: "gray",
+        }
       }
     })
     // only show this while paused
@@ -134,7 +138,7 @@ export default class Game {
     this.pauseBox.show()
   }
 
-  onKeyPress(ch: string, key) {
+  onKeyPress(ch: string, key: Widgets.Events.IKeyEventArg) {
     if (Game.keysToIgnore.has(key.name)) {
       return
     }
@@ -182,7 +186,7 @@ export default class Game {
     const { content, cursorRow } = this.stringifyContent()
     this.mainBox.setContent(content)
     // keep the scroll position up-to-date as the cursor descends down the screen.
-    this.mainBox.scrollTo(cursorRow + Math.floor((this.mainBox.height - 2) / 2))
+    this.mainBox.scrollTo(cursorRow + Math.floor((+this.mainBox.height - 2) / 2))
     this.screen.render()
   }
 

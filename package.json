@@ -1,6 +1,6 @@
 {
   "name": "zhuyin-typing",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Improve typing Chinese characters with Zhuyin",
   "bin": "dist/index.js",
   "type": "module",
@@ -9,7 +9,8 @@
   },
   "engineStrict": true,
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "prepublish": "npm run build"
   },
   "author": "Andy Carlson <2yinyang2@gmail.com>",
   "license": "MIT",
@@ -25,6 +26,10 @@
     "typing",
     "game",
     "training"
+  ],
+  "files": [
+    "dist/*.js",
+    "examples/*"
   ],
   "dependencies": {
     "blessed": "^0.1.81",
