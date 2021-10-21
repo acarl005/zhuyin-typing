@@ -1,6 +1,6 @@
 {
   "name": "zhuyin-typing",
-  "version": "1.0.5",
+  "version": "1.0.4",
   "description": "Improve typing Chinese characters with Zhuyin",
   "bin": "dist/index.js",
   "type": "module",
