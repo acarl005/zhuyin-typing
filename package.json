@@ -10,6 +10,7 @@
   "engineStrict": true,
   "scripts": {
     "build": "tsc",
+    "start": "node ./dist/index.js",
     "prepublish": "npm run build"
   },
   "author": "Andy Carlson <2yinyang2@gmail.com>",

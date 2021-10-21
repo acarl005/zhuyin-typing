@@ -8,7 +8,7 @@ import { CharData, Manuscript } from "./game.js"
 
 
 export default async function convertHanzi(hanzi: string) {
-  const resp = await fetch("https://www.ezlang.net/cmn/tool_data.php", {
+  const resp = await fetch("https://www.ezlang.net/ajax/tool_data.php", {
     headers: {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:83.0) Gecko/20100101 Firefox/83.0",
       "Accept": "*/*",
