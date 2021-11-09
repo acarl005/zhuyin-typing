@@ -26,6 +26,9 @@ export default async function convertHanzi(hanzi: string) {
     credentials: "omit",
     mode: "cors"
   });
+  if (!resp.ok) {
+    throw Error(`Error fetching 注音. Status code ${resp.status}\n` + await resp.text())
+  }
   const json = await resp.json()
   // this endpoint actually returns HTML
   const html = json[1]
